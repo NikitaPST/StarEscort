@@ -20,6 +20,7 @@ class GameWorld:
         self.texts = []
         self.engine = engine
         self.map = None
+        self.not_near = 75
 
     def __del__(self):
         for sprite in self.sprites:
@@ -53,6 +54,7 @@ class GameWorld:
             self.passiveObj.append(o)
 
     def turn_obj(self, o, angle, stop = False):
+        # Should time sync
         self.objects[o].angle += angle
         while self.objects[o].angle >= 360:
             self.objects[o].angle -= 360
@@ -117,6 +119,15 @@ class GameWorld:
                     obj.y = max(round(sy * s + obj.y), obj.way_y)
             obj.stay = obj.stay or ((obj.way_x == obj.x) or (obj.way_y == obj.y))
             # Scroll world
+            if obj.always_show:
+                if obj.x < self.startx + self.not_near + obj.pic.phase_width // 2:
+                    self.startx = max(self.minx, obj.x - self.not_near - obj.pic.phase_width // 2)
+                if obj.y < self.starty + self.not_near + obj.pic.height // 2:
+                    self.starty = max(self.miny, obj.y - self.not_near - obj.pic.height // 2)
+                if obj.x > self.startx + self.engine.game.width - obj.pic.phase_width // 2 - self.not_near:
+                    self.startx = min(self.maxx - self.engine.game.width, obj.x + self.not_near + obj.pic.phase_width // 2 - self.engine.game.width)
+                if obj.y > self.starty + self.engine.game.height - obj.pic.height // 2 - self.not_near:
+                    self.starty = min(self.maxy - self.engine.game.height, obj.y + self.not_near + obj.pic.height // 2 - self.engine.game.height)
 
         for obj in reversed(self.objects):
             obj.draw(tick)
@@ -170,6 +181,7 @@ class StarEscortWorld(GameWorld):
 
         super().add_obj(True, 1, 1150, 1250, 30, 0, 50, 13)
         super().turn_obj(0, -90)
+        self.objects[0].always_show = True
 
         super().add_obj(True, 2, 1000, 1350, 6, 7, 150, 12)
         super().turn_obj(1, -90)
