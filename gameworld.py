@@ -53,6 +53,14 @@ class GameWorld:
         else:
             self.passiveObj.append(o)
 
+    def remove_obj(self, active, n):
+        if active:
+            if self.objects[n].remove_spr != -1:
+                self.add_obj(False, 0, self.objects[n].x, self.objects[n].y, 0, self.objects[n].remove_spr, 0, -1, utils.get_tick_count() + 500)
+            del self.objects[n]
+        else:
+            del self.passiveObj[n]
+
     def turn_obj(self, o, angle, stop = False):
         # Should time sync
         self.objects[o].angle += angle
@@ -73,12 +81,16 @@ class GameWorld:
             return
         o = self.objects[n]
         if ax < self.minx:
+            ay = utils.crop_y_by_x((o.x,o.y), (ax,ay), self.minx)
             ax = self.minx
         if ay < self.miny:
+            ax = utils.crop_x_by_y((o.x,o.y), (ax,ay), self.miny)
             ay = self.miny
         if ax > self.maxx:
+            ay = utils.crop_y_by_x((o.x,o.y), (ax,ay), self.maxx)
             ax = self.maxx
         if ay > self.maxy:
+            ax = utils.crop_x_by_y((o.x,o.y), (ax,ay), self.maxy)
             ay = self.maxy
         o.way_x = ax
         o.way_y = ay
@@ -88,6 +100,11 @@ class GameWorld:
 
     def move_forward(self, o, n):
         self.move_obj(o, self.objects[o].x - round(n * math.sin(math.radians(self.objects[o].angle))), self.objects[o].y - round(n * math.cos(math.radians(self.objects[o].angle))))
+
+    def finish_move(self, n):
+        self.objects[n].x = self.objects[n].way_x
+        self.objects[n].y = self.objects[n].way_y
+        self.objects[n].stay = True
 
     def process(self, tick):
         i = 0
@@ -117,7 +134,7 @@ class GameWorld:
                     obj.y = min(round(sy * s + obj.y), obj.way_y)
                 else:
                     obj.y = max(round(sy * s + obj.y), obj.way_y)
-            obj.stay = obj.stay or ((obj.way_x == obj.x) or (obj.way_y == obj.y))
+            obj.stay = obj.stay or ((obj.way_x == obj.x) and (obj.way_y == obj.y))
             # Scroll world
             if obj.always_show:
                 if obj.x < self.startx + self.not_near + obj.pic.phase_width // 2:
@@ -195,12 +212,21 @@ class StarEscortWorld(GameWorld):
             return False
 
         # Win/Lose Conditions
+
+        # Keyboard events
         if self.engine.keys[pygame.K_UP]:
             super().move_forward(0, 40)
         if self.engine.keys[pygame.K_LEFT]:
             super().turn_obj(0, 4)
         if self.engine.keys[pygame.K_RIGHT]:
             super().turn_obj(0, -4)
+        if self.engine.keys[pygame.K_SPACE] and (tick - self.shoot_time > 200):
+            super().add_obj(True, 3, self.objects[0].x, self.objects[0].y, 60, 8, 1, 14, tick + 7000)
+            super().turn_obj(len(self.objects) - 1, self.objects[0].angle)
+            super().move_forward(len(self.objects) - 1, 65)
+            super().finish_move(len(self.objects) - 1)
+            super().move_forward(len(self.objects) - 1, 3000)
+            self.shoot_time = tick
 
         super().process(tick)
         return True
