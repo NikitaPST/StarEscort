@@ -4,6 +4,7 @@ import math
 import pygame
 from sprite import Sprite
 from gameobject import GameObject
+from gametext import GameText
 
 class GameWorld:
     def __init__(self, tick, engine, amnx, amny, amxx, amxy):
@@ -34,6 +35,10 @@ class GameWorld:
         for obj in self.passiveObj:
             del obj
         del self.passiveObj
+
+        for text in self.texts:
+            del text
+        del self.texts
 
     def add_sprite(self, filename, n_phases = 1, rotable = False):
         s = Sprite(filename, self.engine, n_phases, rotable)
@@ -106,6 +111,11 @@ class GameWorld:
         self.objects[n].y = self.objects[n].way_y
         self.objects[n].stay = True
 
+    def add_text(self, text, color, ax, ay):
+        t = GameText(self.engine, text, None, color, ax, ay)
+        self.texts.append(t)
+
+
     def process(self, tick):
         i = 0
         while i < len(self.passiveObj):
@@ -158,6 +168,8 @@ class GameWorld:
                 i+= 1
 
         # Texts
+        for text in self.texts:
+            text.draw()
 
         # Static
 
@@ -212,6 +224,15 @@ class StarEscortWorld(GameWorld):
             return False
 
         # Win/Lose Conditions
+        if self.game_lost:
+            super().process(tick)
+            return True
+        
+        if self.objects[1].x >= 10000:
+            if len(self.texts) == 0:
+                super().add_text('Win! Transport reached its destination!', (255,0,0), self.engine.game.width // 2, 200)
+            super().process(tick)
+            return True
 
         # Keyboard events
         if self.engine.keys[pygame.K_UP]:
@@ -227,6 +248,9 @@ class StarEscortWorld(GameWorld):
             super().finish_move(len(self.objects) - 1)
             super().move_forward(len(self.objects) - 1, 3000)
             self.shoot_time = tick
+
+        # Move transport
+        super().move_forward(1, 20)
 
         super().process(tick)
         return True
