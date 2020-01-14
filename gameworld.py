@@ -81,6 +81,40 @@ class GameWorld:
                 l = round(math.sqrt((self.objects[o].way_x - self.objects[o].x)**2 + (self.objects[o].way_y - self.objects[o].y)**2))
                 self.objects[o].move_forward(l)
 
+    def turn_obj_angle(self, o, angle, stop):
+        if self.objects[o].angle == angle:
+            return
+        self.objects[o].angle = angle
+        while angle >= 360:
+            self.objects[o].angle -= 360
+        while angle < 0:
+            self.objects[o].angle += 360
+        self.objects[o].pic.turn(self.objects[o].angle)
+        if not self.objects[o].stay:
+            if stop:
+                self.stop()
+            else:
+                l = round(math.sqrt((self.objects[o].way_x - self.objects[o].x)**2 + (self.objects[o].way_y - self.objects[o].y)**2))
+                self.objects[o].move_forward(l)
+
+    def turn_obj_to(self, o, o1):
+        if self.objects[o1].y == self.objects[o].y:
+            if self.objects[o1].x == self.objects[o].x:
+                a = 90
+            else:
+                a = 270
+        else:
+            a = 180 + round(math.atan((self.objects[o1].x - self.objects[o].x)/(self.objects[o1].y - self.objects[o].y)) / math.pi * 180)
+
+        if self.objects[o].y > self.objects[o1].y:
+            a -= 180
+        while a >= 360:
+            a -= 360
+        while a < 0:
+            a += 360
+
+        self.turn_obj_angle(o, a, False)
+
     def move_obj(self, n, ax, ay):
         if n >= len(self.objects) or n < 0:
             return
@@ -249,6 +283,38 @@ class StarEscortWorld(GameWorld):
             super().move_forward(len(self.objects) - 1, 3000)
             self.shoot_time = tick
 
+        # Spawn enemies
+        if tick - self.alien_time > 10000:
+            ax = random.randint(450, 700)
+            if random.random() < 0.5:
+                ax = -ax
+            ay = random.randint(300, 450)
+            if random.random() < 0.5:
+                ay = -ay
+            if random.random() <= 0.5:
+                super().add_obj(True, 4, self.objects[0].x + ax, self.objects[0].y + ay, 20, 9, 10, -1)
+            else:
+                super().add_obj(True, 5, self.objects[0].x + ax, self.objects[0].y + ay, 15, 10, 25, -1)
+            self.alien_time = tick
+
+        # Move enemies
+        for i in range(len(self.objects)):
+            obj = self.objects[i]
+            if not (4 <= obj.id <= 5):
+                continue
+            dfight = obj.dist(self.objects[0])
+            dtrans = obj.dist(self.objects[1])
+            c = 0 if dfight + random.randint(0, 200) < dtrans * 2 + random.randint(0, 150) else 1
+            super().turn_obj_to(i, c)
+            obj.move_forward(40)
+            if (tick - obj.action_tick > 1000) and (obj.dist(self.objects[c]) < 600):
+                obj.action_tick = tick
+                super().add_obj(True, 6, obj.x, obj.y, 60, 11, 1, 14, tick + 7000)
+                super().turn_obj(len(self.objects)-1, obj.angle)
+                super().move_forward(len(self.objects) - 1, 65)
+                super().finish_move(len(self.objects) - 1)
+                super().move_forward(len(self.objects) - 1, 3000)
+                
         # Move transport
         super().move_forward(1, 20)
 

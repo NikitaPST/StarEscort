@@ -46,6 +46,12 @@ class GameObject:
     def move_forward(self, n):
         self.move(self.x - round(n * math.sin(math.radians(self.angle))), self.y - round(n * math.cos(math.radians(self.angle))))
 
+    def dist(self, o):
+        if ((self.x + self.pic.phase_width // 2) < (o.x - o.pic.phase_width // 2)) or ((o.x + o.pic.phase_width // 2) < (self.x - self.pic.phase_width // 2)) or ((self.y + self.pic.height // 2) < (o.y + o.pic.height // 2)) or ((o.y + o.pic.height // 2) < (self.y - self.pic.height // 2)):
+            return round(math.sqrt((o.x - self.x)**2 + (o.y - self.y)**2))
+        else:
+            return 0
+
     def draw(self, tick):
         if tick - self.phase_tick > self.pic.phase_pause:
             self.phase += ((tick - self.phase_tick) // self.pic.phase_pause)
