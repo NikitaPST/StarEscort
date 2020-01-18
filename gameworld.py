@@ -217,6 +217,7 @@ class StarEscortWorld(GameWorld):
         self.shoot_time = 0
         self.alien_time = utils.get_tick_count()
         self.game_lost = False
+        self.lives = 3
 
         super().add_sprite('Images/Ship.bmp', 2, True)   # 0
         super().add_sprite('Images/st1.bmp')    # 1
@@ -242,7 +243,7 @@ class StarEscortWorld(GameWorld):
         super().add_obj(False, 0, 1000, 1350, 0, 6, 1000)
         super().add_obj(False, 0, 10000, 1350, 0, 6, 1000)
 
-        super().add_obj(True, 1, 1150, 1250, 30, 0, 50, 13)
+        super().add_obj(True, 1, 1150, 1250, 30, 0, 150, 13)
         super().turn_obj(0, -90)
         self.objects[0].always_show = True
 
@@ -283,6 +284,9 @@ class StarEscortWorld(GameWorld):
             super().move_forward(len(self.objects) - 1, 3000)
             self.shoot_time = tick
 
+        # Move transport
+        super().move_forward(1, 20)
+
         # Spawn enemies
         if tick - self.alien_time > 10000:
             ax = random.randint(450, 700)
@@ -314,9 +318,35 @@ class StarEscortWorld(GameWorld):
                 super().move_forward(len(self.objects) - 1, 65)
                 super().finish_move(len(self.objects) - 1)
                 super().move_forward(len(self.objects) - 1, 3000)
-                
-        # Move transport
-        super().move_forward(1, 20)
+
+        for obj in self.objects:
+            if 4 <= obj.id <= 5:
+                obj.collide_damage(3, 5, 5)
+                obj.collide_damage(1, 25, 25)
+                obj.collide_damage(2, 25, 25)
+            elif obj.id == 6:
+                obj.collide_damage(3, 5, 5)
+                obj.collide_damage(1, 5, 5)
+                obj.collide_damage(2, 5, 5)
+            #elif obj.id == 3:
+            #    obj.collide_damage(2, 5, 5)
+
+        i = 0
+        while i<len(self.objects):
+            if self.objects[i].hits <= 0:
+                if self.objects[i].id == 2:
+                    self.game_lost = True
+                    super().add_text('You lost transport ship...', (255, 0, 0), self.engine.game.width // 2, 200)
+                    super().remove_obj(True, i)
+                elif self.objects[i].id == 1:
+                    self.game_lost = True
+                    super().add_text('You died...', (255, 0, 0), self.engine.game.width // 2, 200)
+                    # TODO: Lives
+                    super().remove_obj(True, i)
+                else:
+                    super().remove_obj(True, i)
+            else:
+                i += 1
 
         super().process(tick)
         return True

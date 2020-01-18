@@ -52,6 +52,23 @@ class GameObject:
         else:
             return 0
 
+    def collide(self, o):
+        if o == self:
+            return False
+        
+        if ((self.x + self.pic.phase_width // 2) < (o.x - o.pic.phase_width // 2)) or ((o.x + o.pic.phase_width // 2) < (self.x - self.pic.phase_width // 2)) or ((self.y + self.pic.height // 2) < (o.y + o.pic.height // 2)) or ((o.y + o.pic.height // 2) < (self.y - self.pic.height // 2)):
+            return False
+
+        # TODO: Proper collision
+
+        return True
+
+    def collide_damage(self, id, dam_self, dam_other):
+        for obj in self.world.objects:
+            if (obj.id == id) and self.collide(obj):
+                obj.hits -= dam_other
+                self.hits -= dam_self
+
     def draw(self, tick):
         if tick - self.phase_tick > self.pic.phase_pause:
             self.phase += ((tick - self.phase_tick) // self.pic.phase_pause)
