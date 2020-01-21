@@ -1,5 +1,6 @@
 import utils
 import math
+import pygame
 from sprite import Sprite
 
 class GameObject:
@@ -27,6 +28,8 @@ class GameObject:
         self.hits = 0
         self.max_hits = 0
         self.world = None
+        self.rect = None
+        self.mask = None
 
     def move(self, ax, ay):
         if ax < self.world.minx:
@@ -55,13 +58,17 @@ class GameObject:
     def collide(self, o):
         if o == self:
             return False
+
+        if self.rect is None or o.rect is None:
+            return False
         
-        if ((self.x + self.pic.phase_width // 2) < (o.x - o.pic.phase_width // 2)) or ((o.x + o.pic.phase_width // 2) < (self.x - self.pic.phase_width // 2)) or ((self.y + self.pic.height // 2) < (o.y + o.pic.height // 2)) or ((o.y + o.pic.height // 2) < (self.y - self.pic.height // 2)):
+        if not pygame.sprite.collide_rect(self, o):
             return False
 
-        # TODO: Proper collision
+        if self.mask is None or o.mask is None:
+            return True
 
-        return True
+        return pygame.sprite.collide_mask(self, o)
 
     def collide_damage(self, id, dam_self, dam_other):
         for obj in self.world.objects:
@@ -76,5 +83,6 @@ class GameObject:
                 self.phase -= self.pic.num_phases
             self.phase_tick = tick
         if self.world.map is None:
-            self.pic.draw(self.x - self.world.startx, self.y - self.world.starty, self.phase, self.angle)
+            self.rect = self.pic.draw(self.x - self.world.startx, self.y - self.world.starty, self.phase, self.angle)
+            self.mask = self.pic.get_mask(self.phase)
         

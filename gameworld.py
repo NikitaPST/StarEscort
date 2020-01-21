@@ -328,8 +328,6 @@ class StarEscortWorld(GameWorld):
                 obj.collide_damage(3, 5, 5)
                 obj.collide_damage(1, 5, 5)
                 obj.collide_damage(2, 5, 5)
-            #elif obj.id == 3:
-            #    obj.collide_damage(2, 5, 5)
 
         i = 0
         while i<len(self.objects):
