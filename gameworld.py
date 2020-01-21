@@ -5,6 +5,7 @@ import pygame
 from sprite import Sprite
 from gameobject import GameObject
 from gametext import GameText
+from staticimage import StaticImage
 
 class GameWorld:
     def __init__(self, tick, engine, amnx, amny, amxx, amxy):
@@ -19,6 +20,7 @@ class GameWorld:
         self.objects = []
         self.passiveObj = []
         self.texts = []
+        self.controls = []
         self.engine = engine
         self.map = None
         self.not_near = 75
@@ -40,6 +42,10 @@ class GameWorld:
             del text
         del self.texts
 
+        for control in self.controls:
+            del control
+        del self.controls
+
     def add_sprite(self, filename, n_phases = 1, rotable = False):
         s = Sprite(filename, self.engine, n_phases, rotable)
         self.sprites.append(s)
@@ -57,6 +63,15 @@ class GameWorld:
             self.objects.append(o)
         else:
             self.passiveObj.append(o)
+
+    def add_static_image(self, id, x, y, ns):
+        if ns >= len(self.sprites):
+            raise Exception("No sprite #" + ns)
+        o = StaticImage(id, x, y, self.sprites[ns])
+        o.world = self
+        if o.pic.rotable:
+            o.pic.turn(0)
+        self.controls.append(o)
 
     def remove_obj(self, active, n):
         if active:
@@ -161,8 +176,6 @@ class GameWorld:
         for obj in self.passiveObj:
             obj.draw(tick)
 
-        # Particle
-
         # Update position
         for obj in reversed(self.objects):
             if not obj.stay:
@@ -205,7 +218,10 @@ class GameWorld:
         for text in self.texts:
             text.draw()
 
-        # Static
+        # Conrols
+        for control in self.controls:
+            if control.is_visible:
+                control.draw(tick)
 
         self.last_tick = tick
 
@@ -236,6 +252,8 @@ class StarEscortWorld(GameWorld):
         super().add_sprite('Images/Bang3.bmp')    # 14
         super().add_sprite('Images/Sparkle.bmp')    # 15
         super().add_sprite('Images/Sparkle2.bmp')    # 16
+        super().add_sprite('Images/ShipIcon.bmp')    # 17
+        super().add_sprite('Images/TransIcon.bmp')      # 18
         
         for i in range(1700):
             super().add_obj(False, 0, random.randint(0,14950), random.randint(0,2950), 0, random.randint(1,5), 1)
@@ -249,6 +267,13 @@ class StarEscortWorld(GameWorld):
 
         super().add_obj(True, 2, 1000, 1350, 6, 7, 150, 12)
         super().turn_obj(1, -90)
+
+        super().add_static_image('ShipIcon1', 12, 15, 17)
+        super().add_static_image('ShipIcon2', 35, 15, 17)
+        super().add_static_image('ShipIcon3', 59, 15, 17)
+        super().add_static_image('TransIcon1', 12, 45, 18)
+        super().add_static_image('TransIcon2', 35, 45, 18)
+        super().add_static_image('TransIcon3', 59, 45, 18)
 
     def __del__(self):
         return super().__del__()

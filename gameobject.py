@@ -83,6 +83,6 @@ class GameObject:
                 self.phase -= self.pic.num_phases
             self.phase_tick = tick
         if self.world.map is None:
-            self.rect = self.pic.draw(self.x - self.world.startx, self.y - self.world.starty, self.phase, self.angle)
+            self.rect = self.pic.draw(self.x - self.world.startx, self.y - self.world.starty, self.phase)
             self.mask = self.pic.get_mask(self.phase)
         

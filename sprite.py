@@ -56,7 +56,7 @@ class Sprite:
             return self.rotable_masks[phase-1]
         return self.phased_masks[phase-1]
 
-    def draw(self, x, y, phase, angle):
+    def draw(self, x, y, phase):
         surface = self.get_surface(phase)
         (phase_width, phase_height) = surface.get_size()
         ax = x - phase_width // 2
