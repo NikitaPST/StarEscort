@@ -233,7 +233,8 @@ class StarEscortWorld(GameWorld):
         self.shoot_time = 0
         self.alien_time = utils.get_tick_count()
         self.game_lost = False
-        self.lives = 3
+        self.lives_ship = 3
+        self.lives_trans = 3
 
         super().add_sprite('Images/Ship.bmp', 2, True)   # 0
         super().add_sprite('Images/st1.bmp')    # 1
@@ -261,19 +262,19 @@ class StarEscortWorld(GameWorld):
         super().add_obj(False, 0, 1000, 1350, 0, 6, 1000)
         super().add_obj(False, 0, 10000, 1350, 0, 6, 1000)
 
-        super().add_obj(True, 1, 1150, 1250, 30, 0, 150, 13)
+        super().add_obj(True, 1, 1150, 1250, 30, 0, 50, 13)
         super().turn_obj(0, -90)
         self.objects[0].always_show = True
 
-        super().add_obj(True, 2, 1000, 1350, 6, 7, 150, 12)
+        super().add_obj(True, 2, 1000, 1350, 6, 7, 50, 12)
         super().turn_obj(1, -90)
 
         super().add_static_image('ShipIcon1', 12, 15, 17)
         super().add_static_image('ShipIcon2', 35, 15, 17)
         super().add_static_image('ShipIcon3', 59, 15, 17)
-        super().add_static_image('TransIcon1', 12, 45, 18)
-        super().add_static_image('TransIcon2', 35, 45, 18)
-        super().add_static_image('TransIcon3', 59, 45, 18)
+        super().add_static_image('TransIcon3', 815, 15, 18)
+        super().add_static_image('TransIcon2', 789, 15, 18)
+        super().add_static_image('TransIcon1', 767, 15, 18)
 
     def __del__(self):
         return super().__del__()
@@ -358,14 +359,23 @@ class StarEscortWorld(GameWorld):
         while i<len(self.objects):
             if self.objects[i].hits <= 0:
                 if self.objects[i].id == 2:
-                    self.game_lost = True
-                    super().add_text('You lost transport ship...', (255, 0, 0), self.engine.game.width // 2, 200)
-                    super().remove_obj(True, i)
+                    self.lives_trans -= 1
+                    if self.lives_trans < 0:
+                        self.game_lost = True
+                        super().add_text('You lost transport ship...', (255, 0, 0), self.engine.game.width // 2, 200)
+                        super().remove_obj(True, i)
+                    else:
+                        self.objects[i].hits = 50
+                        self.controls[self.lives_trans+3].is_visible = False
                 elif self.objects[i].id == 1:
-                    self.game_lost = True
-                    super().add_text('You died...', (255, 0, 0), self.engine.game.width // 2, 200)
-                    # TODO: Lives
-                    super().remove_obj(True, i)
+                    self.lives_ship -= 1
+                    if self.lives_ship < 0:
+                        self.game_lost = True
+                        super().add_text('You died...', (255, 0, 0), self.engine.game.width // 2, 200)
+                        super().remove_obj(True, i)
+                    else:
+                        self.objects[i].hits = 50
+                        self.controls[self.lives_ship].is_visible = False
                 else:
                     super().remove_obj(True, i)
             else:
