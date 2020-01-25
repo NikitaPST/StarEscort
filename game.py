@@ -2,9 +2,6 @@ import utils
 from gameworld import StarEscortWorld
 from engine2d import Engine2D
 
-lives = 3
-world = None
-
 class Game:
     def __init__(self):
         self.left = 91
@@ -16,7 +13,7 @@ class Game:
         self.engine = Engine2D()
         self.engine.caption = "Star Escort"
         self.engine.show_fps = True
-        self.engine.windowed = True
+        self.engine.windowed = False
 
     def start(self):
         self.engine.init(self)

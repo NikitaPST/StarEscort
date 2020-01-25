@@ -51,16 +51,11 @@ class Engine2D:
         if self.windowed:
             self.back_surface = pygame.display.set_mode((game.width, game.height))
         else:
-            print("Fullscreen is not supported yet.")
+            self.back_surface = pygame.display.set_mode((game.width, game.height), pygame.FULLSCREEN)
 
         self.last_tick = utils.get_tick_count()
-        # Screen OnIdle
         self.active = True
         self.fps_tick = self.last_tick
-
-        # self.init_fonts()
-
-        # init children
 
     def set_game_world(self, game_world):
         self.game_world = game_world

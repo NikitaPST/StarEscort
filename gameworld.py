@@ -314,7 +314,7 @@ class StarEscortWorld(GameWorld):
         super().move_forward(1, 20)
 
         # Spawn enemies
-        if tick - self.alien_time > 10000:
+        if tick - self.alien_time > 7500:
             ax = random.randint(450, 700)
             if random.random() < 0.5:
                 ax = -ax
